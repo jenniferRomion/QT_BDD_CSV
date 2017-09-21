@@ -12,17 +12,16 @@ WManager::WManager(QObject *parent) : QObject(parent)
 {
     qDebug() << "WManager::instance construite ";
 
-    // 1/2 Initialisation des valeurs pour le QML avant chargement du fichier
-    // propriétés simples
-    setPropString("aucun fichier ouvert");//.... in .cpp 1/3  : Rajout propriété du Context QML
+    setPropString("aucun fichier ouvert");
     setlargeurBouton(140);
+    setMessageErreur("");
 }
 
-void WManager::load()
+void WManager::load(QString modeleQML)
 {
     QList<QString> fichiersQML;
     // Chargement d'une ou plusieurs fenêtres avec pour fichiers sources :
-    fichiersQML << QString("main"); // pour une source "main.qml"
+    fichiersQML << modeleQML; // pour une source "main.qml"
 
     for( int t=0 ; t<1 ; t++)
     {
@@ -49,7 +48,7 @@ void WManager::makeQMLtab(QString nomFichierQMLsansExtension)
     // 2/2 Initialisation des valeurs pour le QML avant chargement du fichier
     // Initialisation des modèles (même vides)
     QStringList listeVide;
-    updateQML_model("listeEntierPourEvaluation", listeVide);
+    updateQML_model("ListeTables", listeVide);
     updateQML_model("UnModelARenseigner", listeVide);
     //
 
@@ -63,9 +62,8 @@ void WManager::makeQMLtab(QString nomFichierQMLsansExtension)
     view->show();
 }
 
-// Permet d'afficher des informations sur les répertoires du projet en cours
-// Dans le paramétrage du projet "Project", necessite que "shadow build" soit décoché
 QString WManager::getRepertoireProjet(bool trace)//false
+
 {
     QString repertoireDuFichierApplication( qApp->applicationFilePath() );
     if( trace)
@@ -98,11 +96,7 @@ void WManager::updateQML_model(QString nomModele, QStringList sl)
     m_qmlContext->setContextProperty(nomModele, QVariant::fromValue( sl ) );
 }
 
-void WManager::testActionQML(int i)
-{
-    qDebug() << "WManager::testActionQML : " << i;
-}
-
+/* ***** lecture du fichier CVS ***** */
 void WManager::openCSVfile(QString url)
 {
 
@@ -135,37 +129,33 @@ void WManager::splitCSVFile()
     updateQML_model("UnModelARenseigner", titreColonne);
 }
 
+/* ***** gestion des tables ; sans demande QML *****/
 void WManager::createTablesUnitaires()
 {
-   // actuellement, créé les tables unitaire sans demande QML
+    table.CreateTableUnitaire(0);
+    listeTables << "Ligne";
 
-   table.CreateTableUnitaire(0);
-   listeTables << "Ligne";
+    table.CreateTableUnitaire(2);
+    listeTables << "Desserte";
 
-   table.CreateTableUnitaire(2);
-   listeTables << "Desserte";
+    table.CreateTableUnitaire(6);
+    listeTables << "Departement";
 
-   table.CreateTableUnitaire(6);
-   listeTables << "Departement";
+    table.CreateTableUnitaire(7);
+    listeTables << "CodePostal";
 
-   table.CreateTableUnitaire(7);
-   listeTables << "CodePostal";
-
-
-   updateQML_model("listeEntierPourEvaluation", listeTables);
-
+    updateQML_model("ListeTables", listeTables);
 }
 
 void WManager::createTablesWithFK()
 {
-
     table.CreateTableWithFK(8, 2);
     listeTables << "Ville" ;
 
     table.CreateTableWithFK(1, 4);
     listeTables << "Gare" ;
 
-    updateQML_model("listeEntierPourEvaluation", listeTables);
+    updateQML_model("ListeTables", listeTables);
 }
 
 void WManager::createTablesRelation()
@@ -179,9 +169,69 @@ void WManager::createTablesRelation()
     table.CreateTableRelation("0;1;5", "3;4");
     listeTables << "Ligne_Desserte_Gare" ;
 
-    updateQML_model("listeEntierPourEvaluation", listeTables);
+    updateQML_model("ListeTables", listeTables);
 }
 
+
+/* ***** gestion des tables ; via interface QML *****/
+void WManager::createTablesUnitaires(QString nomTable, int indice)
+{
+    setMessageErreur("");
+
+    if ( !listeTables.contains(nomTable) )
+    {
+        table.CreateTableUnitaire(indice);
+        listeTables << nomTable;
+        updateQML_model("ListeTables", listeTables);
+        setMessageErreur("table " + nomTable + "créée");
+    }
+
+    else
+    {
+        setMessageErreur("erreur : table existante");
+    }
+}
+
+void WManager::createTablesWithFK(QString nomTable, int indiceColonne, int indiceTable)
+{
+    setMessageErreur("");
+
+    if ( !listeTables.contains(nomTable) )
+    {
+        table.CreateTableWithFK(indiceColonne, indiceTable);
+        listeTables << nomTable;
+        updateQML_model("ListeTables", listeTables);
+        setMessageErreur("table " + nomTable + "créée");
+    }
+
+    else
+    {
+        setMessageErreur("erreur : table existante");
+    }
+}
+
+void WManager::createTablesRelation(QString nomTable, QString indicesTables, QString indicesColonnes)
+{
+    setMessageErreur("");
+
+    if ( !listeTables.contains(nomTable) )
+    {
+        indicesTables = indicesTables.mid(0, indicesTables.size() -1);
+        indicesColonnes = indicesColonnes.mid(0, indicesColonnes.size() -1);
+
+        table.CreateTableRelation(indicesTables, indicesColonnes);
+        listeTables << nomTable;
+        updateQML_model("ListeTables", listeTables);
+        setMessageErreur("table " + nomTable + "créée");
+    }
+
+    else
+    {
+        setMessageErreur("erreur : table existante");
+    }
+}
+
+/* **** sauvegarde **** */
 void WManager::save(QString url)
 {
     QString url_clear = url.remove(0,8);
@@ -192,35 +242,19 @@ void WManager::save(QString url)
 }
 
 
-
-
-// Fonction appelée à partir du QML pour exécuter une action C++
-void WManager::sendActionToCpp(QString nomAction, QString parametre/*=""*/)
-{
-    qDebug() << "WManager::sendActionfromQML : nomAction = " << nomAction;
-    qDebug() << "WManager::sendActionfromQML : parametre = " << parametre;
-
-    if ( nomAction == "monAction" )
-    {
-        // Détail d'une action appelée à partir du C++
-    }
-    else if ( nomAction == "autreAction" )
-    {
-        // Détail d'une autre action appelée à partir du C++
-    }
-}
-
-//................ Rajout d'une propriété du Context pour le QML .............
-//.... in .cpp 2/3  : Rajout propriété du Context QML
+/* ******** Rajout des propriétés du Context pour le QML **** */
 void WManager::setPropString(const QString &a) {
     if (a != m_propString) {
         m_propString = a;
         emit propStringChanged();
     }
 }
-//.... in .cpp 3/3  : Rajout propriété du Context QML
-QString WManager::propString_r() const {
-    return m_propString;
+
+void WManager::setMessageErreur(const QString &message) {
+    if (message != m_messageErreur) {
+        m_messageErreur = message;
+        emit messageErreurChanged();
+    }
 }
 
 void WManager::setlargeurBouton(const int &i) {
@@ -230,6 +264,16 @@ void WManager::setlargeurBouton(const int &i) {
     }
 }
 
+/* ********** */
+
+QString WManager::propString_r() const {
+    return m_propString;
+}
+
 int WManager::largeurBouton_r() const {
     return m_largeurBouton;
+}
+
+QString WManager::messageErreur() const {
+    return m_messageErreur;
 }

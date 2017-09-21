@@ -16,4 +16,5 @@ HEADERS += \
     cpp/table.h
 
 DISTFILES += \
-    qml/main.qml
+    qml/main.qml \
+    qml/content/MyScript.js
