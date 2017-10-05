@@ -11,6 +11,7 @@ class Table
 
 public:
     Table();
+
 //autres methodes
     void CreateTableUnitaire (int indice);
     void CreateTableRelation (QString tables, QString columsToAdd ="");

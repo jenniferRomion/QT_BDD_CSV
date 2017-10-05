@@ -12,13 +12,15 @@ class Utile
 public:
     Utile();
 
-    static QStringList getStringListFromFile(QString nomFichier);
-    static void setLinesInFile(const QString &url, const QStringList &sl);
+    /* *** Lecture / ecriture  *** */
+    static QString getURLFromCpp(QString &url);
+    static QStringList getStringListFromFile(const QString &url);
     static QString getLinesFromFile(const QString &url);
+    static void setLinesInFile(const QString &url, const QStringList &sl);
+
+    /* *** Gestion des tableaux *** */
     static std::vector<std::vector<int>> getTabtabFromList (const QStringList &sl);
-    static QString getURLFromCpp(QString url);
     static void afficheTabTab (std::vector <std::vector<QString>> tab);
-    static QStringList getLines2(const QString &url);
     static std::vector<std::vector<QString>> pushListIntoTabtab (QStringList sl);
 
 

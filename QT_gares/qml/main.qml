@@ -3,7 +3,6 @@ import QtQuick.Controls 1.4
 import QtQuick.Controls 2.2
 import QtQuick.Dialogs 1.0
 
-import "content"
 import "content/MyScript.js" as MyScript
 
 Rectangle {
@@ -25,7 +24,7 @@ Rectangle {
                 height : 40
                 width : 140
                 color : "blue"
-                text : "Gestion des gares ferrovières de la région Ile de France"
+                text : "QT-ParseurCSV"
                 font.family: "Comic Sans MS"
                 font.pointSize: 20
                 verticalAlignment : TextEdit.AlignVCenter
@@ -38,8 +37,8 @@ Rectangle {
                     id : idBoutonCharger
                     width : root.largeurBouton
                     text : "Charger un fichier CSV"
-                    onClicked : { navigateur.open()
-                        MyScript.test()
+                    onClicked : {
+                        navigateur.open()
                     }
                 }
 
@@ -175,10 +174,11 @@ Rectangle {
 
             Button {
                 width : Context.largeurBouton
-                text : "test"
+                text : "open GBdB"
                 onClicked : {
-
+                    Context.load("db_window")
                 }}
+
         } //fin column
 
 

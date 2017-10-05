@@ -12,6 +12,71 @@ int Utile::test = 0;
 Utile::Utile()
 {}
 
+/* *** Lecture / ecriture  *** */
+
+QString Utile::getURLFromCpp(QString &url)
+{
+#ifdef _WIN32
+        QString url_clear = url.remove(0,8);
+#else
+        QString url_clear = url.remove(0,7);
+#endif
+
+        qDebug() << url_clear;
+
+        return url_clear;
+}
+
+QStringList Utile::getStringListFromFile(const QString &url)
+{
+    QStringList sl;
+    QFile loadFile (url);
+
+    if (loadFile.open(QIODevice::ReadOnly | QIODevice::Text))
+    {
+        QTextStream fluxLecture(&loadFile);
+        fluxLecture.setCodec("UTF-8");
+
+        while ( !fluxLecture.atEnd() )
+        {
+            sl << fluxLecture.readLine();
+        }
+
+        loadFile.close();
+    }
+
+    else
+    {
+        qDebug() << "Erreur : ouverture du fichier impossible";
+    }
+
+    return sl;
+}
+
+QString Utile::getLinesFromFile(const QString &url)
+{
+    QString sl;
+    QFile loadFile (url);
+
+    if (loadFile.open(QIODevice::ReadOnly | QIODevice::Text))
+    {
+        QTextStream fluxLecture(&loadFile);
+        fluxLecture.setCodec("UTF-8");
+
+        while ( !fluxLecture.atEnd() )
+        {
+            sl += fluxLecture.readAll();
+        }
+        loadFile.close();
+    }
+    else
+    {
+        qDebug() << "Erreur : ouverture du fichier impossible";
+    }
+
+
+    return sl;
+}
 
 void Utile::setLinesInFile(const QString &url, const QStringList &sl)
 {
@@ -35,32 +100,9 @@ void Utile::setLinesInFile(const QString &url, const QStringList &sl)
     }
 }
 
-QString Utile::getLinesFromFile(const QString &url)
-{
-    QString sl;
-
-//    QString url_clear = url.remove(0,8);
-    QFile loadFile (url);
-
-    if (loadFile.open(QIODevice::ReadOnly | QIODevice::Text))
-    {
-        QTextStream fluxLecture(&loadFile);
-        fluxLecture.setCodec("UTF-8");
-
-        while ( !fluxLecture.atEnd() )
-        {
-            sl += fluxLecture.readAll();
-        }
-        loadFile.close();
-    }
-    else
-    {
-        qDebug() << "Erreur : ouverture du fichier impossible";
-    }
 
 
-    return sl;
-}
+/* *** Gestion des tableaux *** */
 
 std::vector<std::vector<int> > Utile::getTabtabFromList(const QStringList &sl)
 {
@@ -81,14 +123,6 @@ std::vector<std::vector<int> > Utile::getTabtabFromList(const QStringList &sl)
     return grid;
 }
 
-QString Utile::getURLFromCpp(QString url)
-{
-        QString url_clear = url.remove(0,8);
-        qDebug() << url_clear;
-
-        return url_clear;
-}
-
 void Utile::afficheTabTab(std::vector <std::vector<QString> > tab)
 {
     for (std::vector<QString> ligneVal : tab)
@@ -97,32 +131,8 @@ void Utile::afficheTabTab(std::vector <std::vector<QString> > tab)
         {
             qDebug() << val << " ";
         }
-         qDebug() << endl;
+        qDebug() << endl;
     }
-}
-
-QStringList Utile::getLines2(const QString &url)
-{
-    QStringList sl;
-
-        QFile loadFile (url);
-
-        if (loadFile.open(QIODevice::ReadOnly | QIODevice::Text))
-        {
-            QTextStream fluxLecture(&loadFile);
-
-            while ( !fluxLecture.atEnd() )
-            {
-                sl << fluxLecture.readLine();
-            }
-            loadFile.close();
-        }
-        else
-        {
-            qDebug() << "Erreur : ouverture du fichier impossible";
-        }
-
-        return sl;
 }
 
 std::vector<std::vector<QString> > Utile::pushListIntoTabtab(QStringList sl)

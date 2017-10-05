@@ -1,5 +1,6 @@
 function test() {
     console.log("test ok");
+
 }
 
 function tableunitaire() {
@@ -73,3 +74,16 @@ function reset() {
     tablename.text = "";
 }
 
+function reset2() {
+    dbname.text = "";
+    tablename.text = "";
+    colonnes.text = "champs1, champs2, ...";
+    ligne = "1";
+}
+
+function insertInto() {
+    var texte;
+    texte = "INSERT INTO " + tablename.text + " ( "+ colonnes.text + " ) VALUES \n"
+            + Context.messageSGBD;
+    return texte;
+}

@@ -1,6 +1,7 @@
 #include "wmanager.h"
 #include "table.h"
 #include <QApplication>
+#include <QTableView>
 
 #include <QDir>
 #include <QFileDialog>
@@ -15,13 +16,13 @@ WManager::WManager(QObject *parent) : QObject(parent)
     setPropString("aucun fichier ouvert");
     setlargeurBouton(140);
     setMessageErreur("");
+    setMessageSGBD("");
 }
 
 void WManager::load(QString modeleQML)
 {
     QList<QString> fichiersQML;
-    // Chargement d'une ou plusieurs fenêtres avec pour fichiers sources :
-    fichiersQML << modeleQML; // pour une source "main.qml"
+    fichiersQML << modeleQML;
 
     for( int t=0 ; t<1 ; t++)
     {
@@ -38,27 +39,35 @@ void WManager::makeQMLtab(QString nomFichierQMLsansExtension)
     view->setResizeMode( QQuickView::SizeRootObjectToView);
     view->setGeometry(QRect(120, 120, 900, 600));
 
-    // Mise en mémoire des objets pour communiquer avec le QML (avant le chargement de la page)
     m_QMLcontexts << view->engine()->rootContext();
-
-    m_qmlContext = m_QMLcontexts.at(0);
+    m_qmlContext = m_QMLcontexts.last();
     m_qmlContext->setContextProperty("Context", this->getInstance());
-    //
 
-    // 2/2 Initialisation des valeurs pour le QML avant chargement du fichier
-    // Initialisation des modèles (même vides)
+
     QStringList listeVide;
     updateQML_model("ListeTables", listeVide);
     updateQML_model("UnModelARenseigner", listeVide);
-    //
+    updateQML_model("sqlResult", listeVide);
 
+
+#ifdef _WIN32
     QString repertoireProjet = getRepertoireProjet();
-
     QString fichierQML = repertoireProjet + QString("/qml/") + nomFichierQMLsansExtension + QString(".qml");
     std::cout  << "charge le fichier QML : " << fichierQML.toLatin1().constData() << std::endl;
 
-    // Chargement du fichier QML
     view->setSource( QUrl::fromLocalFile(fichierQML) ) ;
+
+#else
+    QString fichierQML = QString("qml/") + nomFichierQMLsansExtension + QString(".qml");
+    QUrl urlQML = QUrl::fromLocalFile(fichierQML);
+
+    std::cout  << "charge le fichier QML : " << fichierQML.toLatin1().constData() << std::endl;
+
+    view->setSource( urlQML ) ;
+    qDebug() << "test";
+
+#endif
+
     view->show();
 }
 
@@ -76,7 +85,9 @@ QString WManager::getRepertoireProjet(bool trace)//false
         std::cout << "qApp->applicationName() = "<< qApp->applicationName().toLatin1().constData() << std::endl;
 
     fichier.cd(qApp->applicationName());
+
     QString repertoireProjet  = fichier.absolutePath() ;
+
     if( trace)
         std::cout  << "repertoireProjet : " << repertoireProjet.toLatin1().constData() << std::endl;
 
@@ -89,7 +100,6 @@ void WManager::displayInitialInformations()
 }
 
 //.............................................................
-// Mise à jour du modele de xxxxView du QML (du type Context.nomModele)
 void WManager::updateQML_model(QString nomModele, QStringList sl)
 {
     m_qmlContext = m_QMLcontexts.at(0);
@@ -99,79 +109,28 @@ void WManager::updateQML_model(QString nomModele, QStringList sl)
 /* ***** lecture du fichier CVS ***** */
 void WManager::openCSVfile(QString url)
 {
-
-    QString url_clear = url.remove(0,8);
-    QFile loadFile (url_clear);
-
-    QString previsualisation = Utile::getLinesFromFile(url_clear);
+    QString previsualisation = Utile::getLinesFromFile(Utile::getURLFromCpp(url));
     setPropString(previsualisation);
 
     qDebug() << "chargement ok";
 
     table.setFileCSV(previsualisation);
-
     previsualisation ="";
 }
 
 void WManager::splitCSVFile()
 {
-
     vector<vector<QString>> tableau_valeurs = Utile::pushListIntoTabtab(table.fileCSV());
     table.setTableau_valeurs(tableau_valeurs);
 
-
-    QStringList titreColonne; //a sortir
-    for (int j(0) ; j < tableau_valeurs[0].size() ; j++)
+    QStringList titreColonne;
+    for (size_t j(0) ; j < tableau_valeurs[0].size() ; j++)
     {
-        titreColonne << tableau_valeurs[0][j];
+        titreColonne << tableau_valeurs[0][(int)j];
     }
 
     updateQML_model("UnModelARenseigner", titreColonne);
 }
-
-/* ***** gestion des tables ; sans demande QML *****/
-void WManager::createTablesUnitaires()
-{
-    table.CreateTableUnitaire(0);
-    listeTables << "Ligne";
-
-    table.CreateTableUnitaire(2);
-    listeTables << "Desserte";
-
-    table.CreateTableUnitaire(6);
-    listeTables << "Departement";
-
-    table.CreateTableUnitaire(7);
-    listeTables << "CodePostal";
-
-    updateQML_model("ListeTables", listeTables);
-}
-
-void WManager::createTablesWithFK()
-{
-    table.CreateTableWithFK(8, 2);
-    listeTables << "Ville" ;
-
-    table.CreateTableWithFK(1, 4);
-    listeTables << "Gare" ;
-
-    updateQML_model("ListeTables", listeTables);
-}
-
-void WManager::createTablesRelation()
-{
-    table.CreateTableRelation("3;4");
-    listeTables << "Ville_CodePostal" ;
-
-    table.CreateTableRelation("3;5");
-    listeTables << "CP_Gare";
-
-    table.CreateTableRelation("0;1;5", "3;4");
-    listeTables << "Ligne_Desserte_Gare" ;
-
-    updateQML_model("ListeTables", listeTables);
-}
-
 
 /* ***** gestion des tables ; via interface QML *****/
 void WManager::createTablesUnitaires(QString nomTable, int indice)
@@ -234,11 +193,71 @@ void WManager::createTablesRelation(QString nomTable, QString indicesTables, QSt
 /* **** sauvegarde **** */
 void WManager::save(QString url)
 {
-    QString url_clear = url.remove(0,8);
-    QFile loadFile (url_clear);
+    if (listeTables.size() != 0)
+    {
+        table.saveNewCsvFiles(Utile::getURLFromCpp(url), listeTables);
+        qDebug() << "fichiers CSV créés";
+    }
+}
 
-    table.saveNewCsvFiles(url_clear, listeTables);
-    qDebug() << "fichiers CSV créés";
+/* **** Gestion BDD **** */
+void WManager::usingDatabase(QString action, QString nameDataBase)
+{
+    if (action == "connexion")
+    {
+        sqluser.connectToDatabase(nameDataBase);
+    }
+    else if (action == "create")
+    {
+        sqluser.newDatabase(nameDataBase);
+    }
+
+    else if (action == "delete")
+    {
+        sqluser.deleteDatabase(nameDataBase);
+    }
+
+    else
+    {
+        qDebug() << "rien";
+    }
+}
+
+void WManager::executeScriptSQL(QString script)
+{
+    QStringList sl;
+
+    sqluser.executeScriptSQL(script);
+    QSqlQueryModel model;
+    model.setQuery(script);
+
+    for (int i(0) ; i < model.rowCount(); i++)
+    {
+        QString ligne1 = model.record(i).value(0).toString();
+        for (int j(1) ; j < model.columnCount() ; j++)
+        {
+            QString ligne2 = model.record(i).value(j).toString();
+            ligne1.append("\t" + ligne2);
+        }
+        sl << ligne1;
+    }
+    SetQueryResult(sl);
+}
+
+void WManager::insertDataFromCSVFile(QString url)
+{
+    QStringList temp;
+    temp << Utile::getStringListFromFile(Utile::getURLFromCpp(url));
+    temp.replaceInStrings(";", ",");
+
+    QString CSVdata("");
+    for (size_t i(1) ; i < temp.size() ; i++)
+    {
+        CSVdata += "(" + temp[(int)i] + "),";
+    }
+    CSVdata.remove(CSVdata.size() -1, CSVdata.size());
+
+    setMessageSGBD(CSVdata);
 }
 
 
@@ -264,6 +283,30 @@ void WManager::setlargeurBouton(const int &i) {
     }
 }
 
+void WManager::setMessageSGBD(const QString &message) {
+    if (message != m_messageSGBD) {
+        m_messageSGBD = message;
+        emit messageSGBDChanged();
+    }
+}
+
+void WManager::SetQueryResult(const QStringList &sl)
+{
+    if (sl != m_queryResult) {
+        m_queryResult = sl;
+        emit queryResultChanged();
+    }
+}
+
+void WManager::setResultQuery(const std::vector<std::vector<QString> > &vec)
+{
+    if (vec != m_resultQuery) {
+        m_resultQuery = vec;
+        emit resultQueryChanged();
+    }
+}
+
+
 /* ********** */
 
 QString WManager::propString_r() const {
@@ -276,4 +319,18 @@ int WManager::largeurBouton_r() const {
 
 QString WManager::messageErreur() const {
     return m_messageErreur;
+}
+
+QString WManager::messageSGBD() const {
+    return m_messageSGBD;
+}
+
+QStringList WManager::queryResult() const
+{
+    return m_queryResult;
+}
+
+std::vector<std::vector<QString> > WManager::resultQuery() const
+{
+    return m_resultQuery;
 }
