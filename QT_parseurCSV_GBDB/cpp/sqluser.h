@@ -18,11 +18,11 @@ public:
 
     //autres méthodes
 
-    void connectToDatabase(const QString &nameDataBase = "");
-    void newDatabase(const QString &nameDataBase);
-    void deleteDatabase(const QString &nameDataBase);
+    QString connectToDatabase(const QString &nameDataBase = "");
+    QString newDatabase(const QString &nameDataBase);
+    QString deleteDatabase(const QString &nameDataBase);
 
-    void executeScriptSQL(QString &script);
+    QString executeScriptSQL(QString &script);
     QStringList afficheRequeteSQL(QString script);
 
 

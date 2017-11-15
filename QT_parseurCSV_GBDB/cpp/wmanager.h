@@ -28,6 +28,7 @@ class WManager : public QObject
     Q_PROPERTY(int largeurBouton READ largeurBouton_r WRITE setlargeurBouton NOTIFY largeurBoutonChanged)
     Q_PROPERTY(QString messageErreur READ messageErreur WRITE setMessageErreur NOTIFY messageErreurChanged)
     Q_PROPERTY(QString messageSGBD READ messageSGBD WRITE setMessageSGBD NOTIFY messageSGBDChanged)
+    Q_PROPERTY(QString messageBD READ messageBD WRITE setMessageBD NOTIFY messageBDChanged)
     Q_PROPERTY(QStringList queryResult READ queryResult WRITE SetQueryResult NOTIFY queryResultChanged)
     Q_PROPERTY(std::vector<std::vector<QString>> resultQuery READ resultQuery WRITE setResultQuery NOTIFY resultQueryChanged)
 
@@ -79,6 +80,7 @@ signals:
     void largeurBoutonChanged();
     void messageErreurChanged();
     void messageSGBDChanged();
+    void messageBDChanged();
     void queryResultChanged();
     void resultQueryChanged();
 
@@ -95,6 +97,9 @@ public slots:
     void setMessageSGBD(const QString &message);
     QString messageSGBD() const;
 
+    void setMessageBD(const QString &message);
+    QString messageBD() const;
+
     void SetQueryResult(const QStringList &sl);
     QStringList queryResult() const;
 
@@ -109,6 +114,7 @@ private :
     int m_largeurBouton;
     QString m_messageErreur;
     QString m_messageSGBD;
+    QString m_messageBD;
     QStringList m_queryResult;
     std::vector<std::vector<QString>> m_resultQuery;
 

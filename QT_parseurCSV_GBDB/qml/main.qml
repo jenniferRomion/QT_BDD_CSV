@@ -48,6 +48,7 @@ Rectangle {
                 }}
 
             Rectangle {
+                id : onglet2
                 height : 40
                 width : 340
                 color: "#cedbd0"
@@ -55,8 +56,18 @@ Rectangle {
                 MouseArea {
                     z : 3
                     anchors.fill: parent
+                    hoverEnabled: true
                     onClicked : { Context.load("gbdb") }
+                    onHoveredChanged: { onglet2.state == '1' ? onglet2.state = "" : onglet2.state =
+                                                                  '1';}
                 }
+
+                states: [
+                    State {
+                        name: "1"
+                        PropertyChanges { target: onglet2; color:"#40a479" }
+                    }
+                ]
 
                 Text {
                     id : titre

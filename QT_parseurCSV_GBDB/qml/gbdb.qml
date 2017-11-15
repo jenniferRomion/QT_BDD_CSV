@@ -34,9 +34,27 @@ Rectangle {
                     }}
 
                 Rectangle {
+                    id : onglet1
                     height : 40
                     width : 340
                     color: "#cedbd0"
+
+                    MouseArea {
+                        z : 3
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        onClicked : { Context.load("main") }
+                        onHoveredChanged: { onglet1.state == '1' ? onglet1.state = "" : onglet1.state =
+                                                                      '1';}
+                    }
+
+                    states: [
+                        State {
+                            name: "1"
+                            PropertyChanges { target: onglet1; color:"#40a479" }
+                        }
+                    ]
+
 
                     Text {
                         id : titreGBDG
@@ -52,12 +70,6 @@ Rectangle {
                 Rectangle {
                     height : 40
                     width : 340
-
-                    MouseArea {
-                        z : 3
-                        anchors.fill: parent
-                        onClicked : { Context.load("gbdb") }
-                    }
 
                     Text {
                         id : titre
@@ -179,5 +191,19 @@ Rectangle {
             }
 
         }//fin Column
+
+        Text {
+            id : messageBD
+            anchors.bottom: parent.bottom
+            x : 45
+            height : 20
+            width : 140
+            color : "black"
+            text : Context.messageBD
+            font.family: "Calibri"
+            font.pointSize: 10
+            horizontalAlignment: Text.AlignLeft
+        }
+
 } //fin Rectangle
 

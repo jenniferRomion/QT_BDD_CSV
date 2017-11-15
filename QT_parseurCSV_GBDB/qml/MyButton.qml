@@ -12,8 +12,8 @@ Button {
 
 
             gradient: Gradient {
-                            GradientStop { position: 0 ; color: control.pressed ? "#65d877" : "#7ae28a" }
-                            GradientStop { position: 1 ; color: control.pressed ? "#7ae28a" : "#65d877" }
+                            GradientStop { position: 0 ; color: control.hovered ? "#65d877" : "#40a479" }
+                            GradientStop { position: 1 ; color: control.hovered ? "#40a479" : "#65d877" }
         }
     }
 }}

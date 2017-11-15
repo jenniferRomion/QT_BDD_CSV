@@ -7,7 +7,7 @@ import QtQuick.Dialogs 1.0
 import "content/MyScript.js" as MyScript
 
 Rectangle {
-    width: 550
+    width: 580
     height : 370
     radius : 10
     border.width: 15

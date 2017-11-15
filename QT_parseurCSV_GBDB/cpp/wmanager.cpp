@@ -17,6 +17,7 @@ WManager::WManager(QObject *parent) : QObject(parent)
     setlargeurBouton(140);
     setMessageErreur("");
     setMessageSGBD("");
+    setMessageBD("");
 }
 
 void WManager::load(QString modeleQML)
@@ -36,8 +37,7 @@ void WManager::makeQMLtab(QString nomFichierQMLsansExtension)
     QQuickView* view = new QQuickView();
     quickViews.push_back(view);
 
-//    view->setResizeMode( QQuickView::SizeRootObjectToView);
-//    view->setGeometry(QRect(120, 120, 900, 600));
+    view->setResizeMode( QQuickView::SizeViewToRootObject);
 
     m_QMLcontexts << view->engine()->rootContext();
     m_qmlContext = m_QMLcontexts.last();
@@ -205,16 +205,16 @@ void WManager::usingDatabase(QString action, QString nameDataBase)
 {
     if (action == "connexion")
     {
-        sqluser.connectToDatabase(nameDataBase);
+        setMessageBD(sqluser.connectToDatabase(nameDataBase));
     }
     else if (action == "create")
     {
-        sqluser.newDatabase(nameDataBase);
+        setMessageBD(sqluser.newDatabase(nameDataBase));
     }
 
     else if (action == "delete")
     {
-        sqluser.deleteDatabase(nameDataBase);
+        setMessageBD(sqluser.deleteDatabase(nameDataBase));
     }
 
     else
@@ -227,7 +227,7 @@ void WManager::executeScriptSQL(QString &script)
 {
     QStringList sl;
 
-    sqluser.executeScriptSQL(script);
+    setMessageBD(sqluser.executeScriptSQL(script));
     sl = sqluser.afficheRequeteSQL(script);
 
     SetQueryResult(sl);
@@ -284,6 +284,13 @@ void WManager::setMessageSGBD(const QString &message) {
     }
 }
 
+void WManager::setMessageBD(const QString &message) {
+    if (message != m_messageBD) {
+        m_messageBD = message;
+        emit messageBDChanged();
+    }
+}
+
 void WManager::SetQueryResult(const QStringList &sl)
 {
     if (sl != m_queryResult) {
@@ -317,6 +324,10 @@ QString WManager::messageErreur() const {
 
 QString WManager::messageSGBD() const {
     return m_messageSGBD;
+}
+
+QString WManager::messageBD() const {
+    return m_messageBD;
 }
 
 QStringList WManager::queryResult() const

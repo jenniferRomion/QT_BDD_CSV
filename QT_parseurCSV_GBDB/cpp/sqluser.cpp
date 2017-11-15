@@ -9,51 +9,66 @@ SqlUser::SqlUser()
 
 }
 
-void SqlUser::newDatabase(const QString &nameDataBase)
+QString SqlUser::newDatabase(const QString &nameDataBase)
 {
+    QString message("");
+
     QSqlQuery query("CREATE DATABASE IF NOT EXISTS " + nameDataBase);
 
     if (query.exec())
     {
-        qDebug() << "la BDD " + nameDataBase + " a ete cree" << endl;
+        message = "la BDD " + nameDataBase + " a ete cree";
     }
 
     else
     {
-        qDebug() << "erreur : " << (query.lastError().text())<< endl;
+        message = "Erreur : impossible de créer la base " + nameDataBase;
+        qDebug() << query.lastError().text();
     }
+
+    return message;
 }
 
-void SqlUser::deleteDatabase(const QString &nameDataBase)
+QString SqlUser::deleteDatabase(const QString &nameDataBase)
 {
+    QString message("");
+
     QSqlQuery query("DROP DATABASE " + nameDataBase);
 
     if (query.exec())
     {
-        qDebug() << "la BDD " + nameDataBase + " a ete supprimee" << endl;
+        message = "la BDD " + nameDataBase + " a ete supprimee";
     }
 
     else
     {
-        qDebug() << "erreur : " << (query.lastError().text())<< endl;
+        message = "Erreur : impossible de supprimer la base " + nameDataBase;
+        qDebug() << query.lastError().text();
     }
+
+    return message;
 }
 
-void SqlUser::executeScriptSQL(QString &script)
+QString SqlUser::executeScriptSQL(QString &script)
 {
+    QString message("");
+
     script.remove('\n');
     script.remove("`");
 
     QSqlQuery query;
     if (query.exec(script))
     {
-        qDebug() << "requete executée";
+        message = "requete executée";
     }
 
     else
     {
-        qDebug() << "erreur : " << (query.lastError().text())<< endl;
+        message = "script non execute _ verifier la syntaxe de la requète";
+        qDebug() << query.lastError().text();
     }
+
+    return message;
 }
 
 QStringList SqlUser::afficheRequeteSQL(QString script)
@@ -77,8 +92,10 @@ QStringList SqlUser::afficheRequeteSQL(QString script)
     return sl;
 }
 
-void SqlUser::connectToDatabase(const QString &nameDataBase)
+QString SqlUser::connectToDatabase(const QString &nameDataBase)
 {
+    QString message("");
+
     m_db = QSqlDatabase::addDatabase("QMYSQL");
     m_db.setDatabaseName(nameDataBase);
     m_db.setHostName("localhost");
@@ -87,13 +104,15 @@ void SqlUser::connectToDatabase(const QString &nameDataBase)
 
     if (m_db.open())
     {
-        qDebug() << "connexion etablie à " << nameDataBase;
+        message= "connexion etablie à " + nameDataBase;
     }
 
     else
     {
-        qDebug() << "echec de la connexion" << endl;
-        qDebug() << "erreur : " << (m_db.lastError().text()) << endl;
+        message = "echec de la connexion";
+        qDebug() << (m_db.lastError().text());
     }
+
+    return message;
 }
 
